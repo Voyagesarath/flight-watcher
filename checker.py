@@ -69,9 +69,14 @@ def load_config() -> dict:
     with open("watchlist.yaml") as f:
         return yaml.safe_load(f)
 
-def build_dates(days_ahead: list) -> list:
+def build_dates(config_settings: dict) -> list:
+    """Supports both fixed departure_dates and relative days_ahead."""
+    if "departure_dates" in config_settings:
+        today = datetime.utcnow().date()
+        return [d for d in config_settings["departure_dates"] if d >= str(today)]
+    # fallback: relative days from today
     today = datetime.utcnow()
-    return [(today + timedelta(days=d)).strftime("%Y-%m-%d") for d in days_ahead]
+    return [(today + timedelta(days=d)).strftime("%Y-%m-%d") for d in config_settings.get("days_ahead", [14, 30, 60])]
 
 
 # ── Flight search ──────────────────────────────────────────────────────────────
@@ -120,6 +125,10 @@ def search_route(origin, dest_code, date, adults, seat) -> Optional[dict]:
 
 def send_telegram(bot_token: str, chat_id: str, message: str):
     """Send a message via Telegram Bot API (no third-party library needed)."""
+    # Telegram hard limit is 4096 chars
+    if len(message) > 4000:
+        message = message[:4000] + "\n\n<i>...truncated. See GitHub Actions for full list.</i>"
+
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = json.dumps({
         "chat_id":    chat_id,
@@ -129,10 +138,14 @@ def send_telegram(bot_token: str, chat_id: str, message: str):
     }).encode()
     req = urllib.request.Request(url, data=payload,
                                   headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        result = json.loads(resp.read())
-        if not result.get("ok"):
-            raise RuntimeError(f"Telegram error: {result}")
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read())
+            if not result.get("ok"):
+                raise RuntimeError(f"Telegram error: {result}")
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        raise RuntimeError(f"Telegram HTTP {e.code}: {body}")
 
 def build_telegram_message(deals: list, run_time: str, total_searched: int) -> str:
     lines = [
@@ -164,7 +177,7 @@ def main():
     excluded    = set(config.get("excluded_countries", []))
     dests       = [d for d in config["destinations"] if d["country_iso"] not in excluded]
     origins     = settings["origins"]
-    dates       = build_dates(settings["days_ahead"])
+    dates       = build_dates(settings)
     threshold   = settings["price_threshold_inr"]
     top_n       = settings["top_results"]
     seat        = settings["seat"]

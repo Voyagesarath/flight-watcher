@@ -1,0 +1,42 @@
+name: ✈️ Flight Price Tracker
+
+on:
+  schedule:
+    # 4× daily — 08:00, 14:00, 20:00, 02:00 IST (UTC+5:30)
+    - cron: "30 2  * * *"
+    - cron: "30 8  * * *"
+    - cron: "30 14 * * *"
+    - cron: "30 20 * * *"
+
+  workflow_dispatch:   # manual trigger from GitHub UI anytime
+
+jobs:
+  check-flights:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to commit state.json
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run flight checker
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python checker.py
+
+      - name: Commit price state
+        run: |
+          git config user.name  "flight-bot"
+          git config user.email "flight-bot@users.noreply.github.com"
+          git add state.json
+          git diff --staged --quiet || git commit -m "chore: update price state [skip ci]"
+          git push

@@ -45,7 +45,7 @@ settings:
   price_threshold_inr: 999999
   top_results: 10
   seat: economy
-  adults: 2
+  adults: 1
 
   max_stops: null
   fetch_mode: fallback

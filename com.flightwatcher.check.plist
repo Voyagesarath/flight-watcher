@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS LaunchAgent: runs the flight checker 4×/day (9am/1pm/5pm/9pm IST).
+  Each run scans ~19 of the 75 destinations. The 9pm run combines all 4
+  shards and sends the daily Telegram report (2 messages).
+  This is the reference copy. The live copy lives at:
+    ~/Library/LaunchAgents/com.flightwatcher.check.plist
+  Install / reload:
+    cp com.flightwatcher.check.plist ~/Library/LaunchAgents/
+    launchctl unload ~/Library/LaunchAgents/com.flightwatcher.check.plist 2>/dev/null
+    launchctl load -w ~/Library/LaunchAgents/com.flightwatcher.check.plist
+  Run once now to test:
+    launchctl start com.flightwatcher.check
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.flightwatcher.check</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/sarathkrishnan/flight-watcher/run.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/sarathkrishnan/flight-watcher</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- 09:00, 13:00, 17:00, 21:00 IST — 9pm run sends the daily Telegram report -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>13</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>17</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>21</integer><key>Minute</key><integer>0</integer></dict>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>/Users/sarathkrishnan/flight-watcher/logs/flight-watcher.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/sarathkrishnan/flight-watcher/logs/flight-watcher.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

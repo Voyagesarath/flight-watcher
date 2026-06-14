@@ -1,47 +1,175 @@
 # ✈️ Flight Watcher — Configuration
-# Edit anything here and push. The next run picks up your changes automatically.
 
 settings:
   origins:
     - TRV   # Thiruvananthapuram
     - COK   # Kochi
 
-  # Departure dates — every Friday, Oct–Dec 2026
+  # Every Friday and Saturday, Sep 1 – Dec 31 2026
   departure_dates:
+    - "2026-09-04"  # Fri Sep 04
+    - "2026-09-05"  # Sat Sep 05
+    - "2026-09-11"  # Fri Sep 11
+    - "2026-09-12"  # Sat Sep 12
+    - "2026-09-18"  # Fri Sep 18
+    - "2026-09-19"  # Sat Sep 19
+    - "2026-09-25"  # Fri Sep 25
+    - "2026-09-26"  # Sat Sep 26
     - "2026-10-02"  # Fri Oct 02
+    - "2026-10-03"  # Sat Oct 03
     - "2026-10-09"  # Fri Oct 09
+    - "2026-10-10"  # Sat Oct 10
     - "2026-10-16"  # Fri Oct 16
+    - "2026-10-17"  # Sat Oct 17
     - "2026-10-23"  # Fri Oct 23
+    - "2026-10-24"  # Sat Oct 24
     - "2026-10-30"  # Fri Oct 30
+    - "2026-10-31"  # Sat Oct 31
     - "2026-11-06"  # Fri Nov 06
+    - "2026-11-07"  # Sat Nov 07
     - "2026-11-13"  # Fri Nov 13
+    - "2026-11-14"  # Sat Nov 14
     - "2026-11-20"  # Fri Nov 20
+    - "2026-11-21"  # Sat Nov 21
     - "2026-11-27"  # Fri Nov 27
+    - "2026-11-28"  # Sat Nov 28
     - "2026-12-04"  # Fri Dec 04
+    - "2026-12-05"  # Sat Dec 05
     - "2026-12-11"  # Fri Dec 11
+    - "2026-12-12"  # Sat Dec 12
     - "2026-12-18"  # Fri Dec 18
+    - "2026-12-19"  # Sat Dec 19
     - "2026-12-25"  # Fri Dec 25
+    - "2026-12-26"  # Sat Dec 26
 
-  # Only alert when price is below this (₹). Raise it to always get a message.
   price_threshold_inr: 999999
-
-  # How many deals to include in the Telegram message
   top_results: 10
-
   seat: economy
   adults: 2
 
+  max_stops: null
+  fetch_mode: fallback
+  retries: 3
+  # Splits the 75-destination list across 4 daily runs (9am/1pm/5pm/9pm IST).
+  # Each run scans ~19 destinations. The 9pm run combines all 4 and sends
+  # the daily Telegram report. Set to 1 to scan everything in one run.
+  shards: 4
+  concurrency: 3
+  request_delay_sec: 1.0
+
 # ── Excluded countries ───────────────────────────────────────────────────────
 excluded_countries:
-  - TH   # Thailand
-  - MY   # Malaysia
-  - SG   # Singapore
-  - VN   # Vietnam
-  - KH   # Cambodia
-  - LA   # Laos
-  - KR   # South Korea
+  # Middle East
+  - AE
+  - SA
+  - QA
+  - KW
+  - BH
+  - OM
+  - IL
+  - PS
+  - JO
+  - LB
+  - SY
+  - IQ
+  - IR
+  - YE
+  # Southeast Asia (not in destination list)
+  - TH
+  - MY
+  - SG
+  - VN
+  - KH
+  - LA
+  - KR
 
-# ── Destinations to scan ─────────────────────────────────────────────────────
+# ── Destinations (75 total) ──────────────────────────────────────────────────
 destinations:
-  - { code: LHR, city: "London Heathrow", country: "UK",     country_iso: GB }
-  - { code: CDG, city: "Paris CDG",       country: "France", country_iso: FR }
+  # ── South Asia / Caucasus ──
+  - { code: KTM, city: "Kathmandu",           country: "Nepal",        country_iso: NP }
+  - { code: CMB, city: "Colombo",             country: "Sri Lanka",    country_iso: LK }
+  - { code: TBS, city: "Tbilisi",             country: "Georgia",      country_iso: GE }
+  - { code: EVN, city: "Yerevan",             country: "Armenia",      country_iso: AM }
+  - { code: GYD, city: "Baku",                country: "Azerbaijan",   country_iso: AZ }
+  - { code: KUT, city: "Kutaisi",             country: "Georgia",      country_iso: GE }
+  - { code: BUS, city: "Batumi",              country: "Georgia",      country_iso: GE }
+  - { code: PBH, city: "Paro",                country: "Bhutan",       country_iso: BT }
+
+  # ── Turkey ──
+  - { code: IST, city: "Istanbul",            country: "Turkey",       country_iso: TR }
+  - { code: SAW, city: "Istanbul Sabiha",     country: "Turkey",       country_iso: TR }
+  - { code: ESB, city: "Ankara",              country: "Turkey",       country_iso: TR }
+  - { code: ADB, city: "Izmir",               country: "Turkey",       country_iso: TR }
+  - { code: AYT, city: "Antalya",             country: "Turkey",       country_iso: TR }
+  - { code: ASR, city: "Kayseri",             country: "Turkey",       country_iso: TR }
+  - { code: TZX, city: "Trabzon",             country: "Turkey",       country_iso: TR }
+
+  # ── Japan ──
+  - { code: HND, city: "Tokyo Haneda",        country: "Japan",        country_iso: JP }
+  - { code: NRT, city: "Tokyo Narita",        country: "Japan",        country_iso: JP }
+  - { code: KIX, city: "Osaka Kansai",        country: "Japan",        country_iso: JP }
+  - { code: CTS, city: "Sapporo",             country: "Japan",        country_iso: JP }
+  - { code: FUK, city: "Fukuoka",             country: "Japan",        country_iso: JP }
+  - { code: NGO, city: "Nagoya",              country: "Japan",        country_iso: JP }
+  - { code: HIJ, city: "Hiroshima",           country: "Japan",        country_iso: JP }
+  - { code: OKA, city: "Okinawa",             country: "Japan",        country_iso: JP }
+
+  # ── Eastern Europe ──
+  - { code: BUD, city: "Budapest",            country: "Hungary",      country_iso: HU }
+  - { code: PRG, city: "Prague",              country: "Czechia",      country_iso: CZ }
+  - { code: WAW, city: "Warsaw",              country: "Poland",       country_iso: PL }
+  - { code: KRK, city: "Krakow",              country: "Poland",       country_iso: PL }
+  - { code: VIE, city: "Vienna",              country: "Austria",      country_iso: AT }
+  - { code: BTS, city: "Bratislava",          country: "Slovakia",     country_iso: SK }
+  - { code: ZAG, city: "Zagreb",              country: "Croatia",      country_iso: HR }
+  - { code: SPU, city: "Split",               country: "Croatia",      country_iso: HR }
+  - { code: DBV, city: "Dubrovnik",           country: "Croatia",      country_iso: HR }
+  - { code: LJU, city: "Ljubljana",           country: "Slovenia",     country_iso: SI }
+  - { code: OTP, city: "Bucharest",           country: "Romania",      country_iso: RO }
+  - { code: CLJ, city: "Cluj",                country: "Romania",      country_iso: RO }
+  - { code: SOF, city: "Sofia",               country: "Bulgaria",     country_iso: BG }
+  - { code: BEG, city: "Belgrade",            country: "Serbia",       country_iso: RS }
+
+  # ── Western Europe ──
+  - { code: MXP, city: "Milan",               country: "Italy",        country_iso: IT }
+  - { code: FCO, city: "Rome",                country: "Italy",        country_iso: IT }
+  - { code: VCE, city: "Venice",              country: "Italy",        country_iso: IT }
+  - { code: FLR, city: "Florence",            country: "Italy",        country_iso: IT }
+  - { code: BCN, city: "Barcelona",           country: "Spain",        country_iso: ES }
+  - { code: MAD, city: "Madrid",              country: "Spain",        country_iso: ES }
+  - { code: AGP, city: "Malaga",              country: "Spain",        country_iso: ES }
+  - { code: LIS, city: "Lisbon",              country: "Portugal",     country_iso: PT }
+  - { code: OPO, city: "Porto",               country: "Portugal",     country_iso: PT }
+  - { code: FRA, city: "Frankfurt",           country: "Germany",      country_iso: DE }
+  - { code: MUC, city: "Munich",              country: "Germany",      country_iso: DE }
+  - { code: BER, city: "Berlin",              country: "Germany",      country_iso: DE }
+  - { code: HAM, city: "Hamburg",             country: "Germany",      country_iso: DE }
+  - { code: AMS, city: "Amsterdam",           country: "Netherlands",  country_iso: NL }
+  - { code: BRU, city: "Brussels",            country: "Belgium",      country_iso: BE }
+  - { code: CDG, city: "Paris",               country: "France",       country_iso: FR }
+  - { code: NCE, city: "Nice",                country: "France",       country_iso: FR }
+  - { code: GVA, city: "Geneva",              country: "Switzerland",  country_iso: CH }
+  - { code: ZRH, city: "Zurich",              country: "Switzerland",  country_iso: CH }
+  - { code: LHR, city: "London Heathrow",     country: "UK",           country_iso: GB }
+  - { code: LGW, city: "London Gatwick",      country: "UK",           country_iso: GB }
+  - { code: EDI, city: "Edinburgh",           country: "UK",           country_iso: GB }
+  - { code: DUB, city: "Dublin",              country: "Ireland",      country_iso: IE }
+
+  # ── Nordics ──
+  - { code: OSL, city: "Oslo",                country: "Norway",       country_iso: NO }
+  - { code: BGO, city: "Bergen",              country: "Norway",       country_iso: NO }
+  - { code: ARN, city: "Stockholm",           country: "Sweden",       country_iso: SE }
+  - { code: GOT, city: "Gothenburg",          country: "Sweden",       country_iso: SE }
+  - { code: CPH, city: "Copenhagen",          country: "Denmark",      country_iso: DK }
+  - { code: KEF, city: "Reykjavik",           country: "Iceland",      country_iso: IS }
+
+  # ── Africa ──
+  - { code: NBO, city: "Nairobi",             country: "Kenya",        country_iso: KE }
+  - { code: MBA, city: "Mombasa",             country: "Kenya",        country_iso: KE }
+  - { code: JNB, city: "Johannesburg",        country: "South Africa", country_iso: ZA }
+  - { code: CPT, city: "Cape Town",           country: "South Africa", country_iso: ZA }
+  - { code: DUR, city: "Durban",              country: "South Africa", country_iso: ZA }
+  - { code: CAI, city: "Cairo",               country: "Egypt",        country_iso: EG }
+  - { code: CMN, city: "Casablanca",          country: "Morocco",      country_iso: MA }
+  - { code: RAK, city: "Marrakech",           country: "Morocco",      country_iso: MA }
+  - { code: JRO, city: "Kilimanjaro",         country: "Tanzania",     country_iso: TZ }

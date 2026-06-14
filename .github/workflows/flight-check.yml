@@ -1,14 +1,23 @@
 name: ✈️ Flight Price Tracker
 
 on:
-  schedule:
-    # 4× daily — 08:00, 14:00, 20:00, 02:00 IST (UTC+5:30)
-    - cron: "30 2  * * *"
-    - cron: "30 8  * * *"
-    - cron: "30 14 * * *"
-    - cron: "30 20 * * *"
+  # Scheduled runs are handled LOCALLY by the macOS LaunchAgent
+  # (com.flightwatcher.check) so we don't rely on GitHub. The cron block below
+  # is intentionally disabled — re-enable it if you ever want GitHub to run too
+  # (note: running both sends duplicate Telegram messages).
+  #
+  # schedule:
+  #   - cron: "30 2  * * *"   # 08:00 IST
+  #   - cron: "30 8  * * *"   # 14:00 IST
+  #   - cron: "30 14 * * *"   # 20:00 IST
+  #   - cron: "30 20 * * *"   # 02:00 IST
 
   workflow_dispatch:   # manual trigger from GitHub UI anytime
+
+# Never let two runs scan + commit state.json at the same time.
+concurrency:
+  group: flight-check
+  cancel-in-progress: false
 
 jobs:
   check-flights:
@@ -27,6 +36,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Fail fast on broken logic so a bad deploy can never send garbage prices.
+      - name: Run tests
+        run: python test_checker.py
+
       - name: Run flight checker
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -38,5 +51,8 @@ jobs:
           git config user.name  "flight-bot"
           git config user.email "flight-bot@users.noreply.github.com"
           git add state.json
-          git diff --staged --quiet || git commit -m "chore: update price state [skip ci]"
-          git push
+          git diff --staged --quiet && exit 0
+          git commit -m "chore: update price state [skip ci]"
+          # Rebase onto any state pushed by an earlier run, then push (retry once).
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push || (git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push)

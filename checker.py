@@ -81,44 +81,55 @@ def build_dates(config_settings: dict) -> list:
 
 # ── Flight search ──────────────────────────────────────────────────────────────
 
+import re as _re
+import time as _time
+
+def parse_price(p) -> int:
+    """Robustly parse price from int or string like '₹8,200' or '8200'."""
+    if isinstance(p, int):
+        return p
+    cleaned = str(p).replace("₹", "").replace(",", "").replace(" ", "").strip()
+    m = _re.search(r'\d+', cleaned)
+    return int(m.group()) if m else 0
+
 def search_route(origin, dest_code, date, adults, seat) -> Optional[dict]:
-    try:
-        result = get_flights(
-            flight_data=[FlightData(date=date, from_airport=origin, to_airport=dest_code)],
-            trip="one-way",
-            seat=seat,
-            passengers=Passengers(adults=adults),
-            fetch_mode="fallback",
-        )
-        if not result or not result.flights:
-            return None
-        valid = [f for f in result.flights if f.price]
-        if not valid:
-            return None
+    """Try up to 2 times with a short delay. Returns None if no valid price found."""
+    for attempt in range(2):
+        try:
+            result = get_flights(
+                flight_data=[FlightData(date=date, from_airport=origin, to_airport=dest_code)],
+                trip="one-way",
+                seat=seat,
+                passengers=Passengers(adults=adults),
+                fetch_mode="fallback",
+            )
+            if not result or not result.flights:
+                raise ValueError("no flights returned")
 
-        def parse_price(p) -> int:
-            """fast-flights returns price as int or string like '₹8,200' or '8200'."""
-            if isinstance(p, int):
-                return p
-            # strip currency symbols, commas, spaces
-            cleaned = str(p).replace("₹", "").replace(",", "").replace(" ", "").strip()
-            # take only leading digits (e.g. "8200 per person" → "8200")
-            import re
-            m = re.search(r'\d+', cleaned)
-            return int(m.group()) if m else 0
+            # Filter: must have a price AND price > 0
+            valid = [f for f in result.flights if f.price and parse_price(f.price) > 0]
+            if not valid:
+                raise ValueError("all prices zero or missing")
 
-        best = min(valid, key=lambda f: parse_price(f.price))
-        return {
-            "price":     parse_price(best.price),
-            "airline":   best.name,
-            "departure": best.departure,
-            "arrival":   best.arrival,
-            "duration":  best.duration,
-            "stops":     best.stops,
-        }
-    except Exception as e:
-        print(f"    ⚠️  {origin}→{dest_code} {date}: {e}")
-        return None
+            best = min(valid, key=lambda f: parse_price(f.price))
+            return {
+                "price":     parse_price(best.price),
+                "airline":   best.name,
+                "departure": best.departure,
+                "arrival":   best.arrival,
+                "duration":  best.duration,
+                "stops":     best.stops,
+            }
+
+        except Exception as e:
+            if attempt == 0:
+                _time.sleep(2)   # short pause before retry
+            else:
+                err = str(e)
+                # Only print non-turnstile errors to keep logs clean
+                if "401" not in err and "turnstile" not in err.lower():
+                    print(f"    ⚠️  {origin}→{dest_code} {date}: {err}")
+    return None
 
 
 # ── Telegram ───────────────────────────────────────────────────────────────────

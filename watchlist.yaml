@@ -6,11 +6,24 @@ settings:
     - TRV   # Thiruvananthapuram
     - COK   # Kochi
 
-  # Departure dates to check (days from today)
-  days_ahead: [14, 21, 30, 45, 60]
+  # Departure dates — every Friday, Oct–Dec 2026
+  departure_dates:
+    - "2026-10-02"  # Fri Oct 02
+    - "2026-10-09"  # Fri Oct 09
+    - "2026-10-16"  # Fri Oct 16
+    - "2026-10-23"  # Fri Oct 23
+    - "2026-10-30"  # Fri Oct 30
+    - "2026-11-06"  # Fri Nov 06
+    - "2026-11-13"  # Fri Nov 13
+    - "2026-11-20"  # Fri Nov 20
+    - "2026-11-27"  # Fri Nov 27
+    - "2026-12-04"  # Fri Dec 04
+    - "2026-12-11"  # Fri Dec 11
+    - "2026-12-18"  # Fri Dec 18
+    - "2026-12-25"  # Fri Dec 25
 
   # Only alert when price is below this (₹). Raise it to always get a message.
-  price_threshold_inr: 25000
+  price_threshold_inr: 50000
 
   # How many deals to include in the Telegram message
   top_results: 10

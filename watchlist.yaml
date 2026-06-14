@@ -23,7 +23,7 @@ settings:
     - "2026-12-25"  # Fri Dec 25
 
   # Only alert when price is below this (₹). Raise it to always get a message.
-  price_threshold_inr: 50000
+  price_threshold_inr: 999999
 
   # How many deals to include in the Telegram message
   top_results: 10
@@ -43,74 +43,5 @@ excluded_countries:
 
 # ── Destinations to scan ─────────────────────────────────────────────────────
 destinations:
-  # Middle East
-  - { code: DXB, city: "Dubai",          country: "UAE",          country_iso: AE }
-  - { code: AUH, city: "Abu Dhabi",      country: "UAE",          country_iso: AE }
-  - { code: SHJ, city: "Sharjah",        country: "UAE",          country_iso: AE }
-  - { code: MCT, city: "Muscat",         country: "Oman",         country_iso: OM }
-  - { code: KWI, city: "Kuwait City",    country: "Kuwait",       country_iso: KW }
-  - { code: BAH, city: "Bahrain",        country: "Bahrain",      country_iso: BH }
-  - { code: DOH, city: "Doha",           country: "Qatar",        country_iso: QA }
-  - { code: RUH, city: "Riyadh",         country: "Saudi Arabia", country_iso: SA }
-  - { code: JED, city: "Jeddah",         country: "Saudi Arabia", country_iso: SA }
-  - { code: AMM, city: "Amman",          country: "Jordan",       country_iso: JO }
-  - { code: BEY, city: "Beirut",         country: "Lebanon",      country_iso: LB }
-  - { code: TLV, city: "Tel Aviv",       country: "Israel",       country_iso: IL }
-
-  # East / Southeast Asia (non-excluded)
-  - { code: CGK, city: "Jakarta",        country: "Indonesia",    country_iso: ID }
-  - { code: MNL, city: "Manila",         country: "Philippines",  country_iso: PH }
-  - { code: PEK, city: "Beijing",        country: "China",        country_iso: CN }
-  - { code: PVG, city: "Shanghai",       country: "China",        country_iso: CN }
-  - { code: CAN, city: "Guangzhou",      country: "China",        country_iso: CN }
-  - { code: NRT, city: "Tokyo",          country: "Japan",        country_iso: JP }
-  - { code: KIX, city: "Osaka",          country: "Japan",        country_iso: JP }
-  - { code: HKG, city: "Hong Kong",      country: "Hong Kong",    country_iso: HK }
-  - { code: TPE, city: "Taipei",         country: "Taiwan",       country_iso: TW }
-
-  # South Asia
-  - { code: CMB, city: "Colombo",        country: "Sri Lanka",    country_iso: LK }
-  - { code: MLE, city: "Malé",           country: "Maldives",     country_iso: MV }
-  - { code: DAC, city: "Dhaka",          country: "Bangladesh",   country_iso: BD }
-  - { code: KTM, city: "Kathmandu",      country: "Nepal",        country_iso: NP }
-
-  # Central Asia
-  - { code: TAS, city: "Tashkent",       country: "Uzbekistan",   country_iso: UZ }
-  - { code: ALA, city: "Almaty",         country: "Kazakhstan",   country_iso: KZ }
-
-  # Africa
-  - { code: NBO, city: "Nairobi",        country: "Kenya",        country_iso: KE }
-  - { code: ADD, city: "Addis Ababa",    country: "Ethiopia",     country_iso: ET }
-  - { code: JNB, city: "Johannesburg",   country: "South Africa", country_iso: ZA }
-  - { code: CAI, city: "Cairo",          country: "Egypt",        country_iso: EG }
-  - { code: LOS, city: "Lagos",          country: "Nigeria",      country_iso: NG }
-  - { code: DAR, city: "Dar es Salaam",  country: "Tanzania",     country_iso: TZ }
-  - { code: EBB, city: "Entebbe",        country: "Uganda",       country_iso: UG }
-
-  # Europe
-  - { code: LHR, city: "London",         country: "UK",           country_iso: GB }
-  - { code: LGW, city: "London Gatwick", country: "UK",           country_iso: GB }
-  - { code: CDG, city: "Paris",          country: "France",       country_iso: FR }
-  - { code: FRA, city: "Frankfurt",      country: "Germany",      country_iso: DE }
-  - { code: AMS, city: "Amsterdam",      country: "Netherlands",  country_iso: NL }
-  - { code: FCO, city: "Rome",           country: "Italy",        country_iso: IT }
-  - { code: BCN, city: "Barcelona",      country: "Spain",        country_iso: ES }
-  - { code: MAD, city: "Madrid",         country: "Spain",        country_iso: ES }
-  - { code: ZRH, city: "Zurich",         country: "Switzerland",  country_iso: CH }
-  - { code: VIE, city: "Vienna",         country: "Austria",      country_iso: AT }
-  - { code: IST, city: "Istanbul",       country: "Turkey",       country_iso: TR }
-  - { code: ATH, city: "Athens",         country: "Greece",       country_iso: GR }
-
-  # North America
-  - { code: JFK, city: "New York",       country: "USA",          country_iso: US }
-  - { code: ORD, city: "Chicago",        country: "USA",          country_iso: US }
-  - { code: LAX, city: "Los Angeles",    country: "USA",          country_iso: US }
-  - { code: SFO, city: "San Francisco",  country: "USA",          country_iso: US }
-  - { code: YYZ, city: "Toronto",        country: "Canada",       country_iso: CA }
-  - { code: YVR, city: "Vancouver",      country: "Canada",       country_iso: CA }
-
-  # Australia
-  - { code: SYD, city: "Sydney",         country: "Australia",    country_iso: AU }
-  - { code: MEL, city: "Melbourne",      country: "Australia",    country_iso: AU }
-  - { code: BNE, city: "Brisbane",       country: "Australia",    country_iso: AU }
-  - { code: PER, city: "Perth",          country: "Australia",    country_iso: AU }
+  - { code: LHR, city: "London Heathrow", country: "UK",     country_iso: GB }
+  - { code: CDG, city: "Paris CDG",       country: "France", country_iso: FR }

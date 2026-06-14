@@ -29,12 +29,17 @@ import json
 import os
 import random
 import re
+import socket
 import statistics
 import sys
 import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Hard cap on every socket operation — prevents a hung TLS handshake or stalled
+# TCP connection from freezing a worker thread indefinitely.
+socket.setdefaulttimeout(45)
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -153,7 +158,13 @@ def shard_slice(items: list, n_shards: int, override_idx: int = -1) -> tuple:
         idx = override_idx
     elif n_shards == 4:
         hour = now_ist().hour
-        idx = SCHED_HOURS_4.get(hour, now_ist().timetuple().tm_yday % n_shards)
+        if hour not in SCHED_HOURS_4:
+            # Not at a scheduled slot — bypass sharding so a manual run always
+            # produces a usable report instead of silently writing the wrong cache.
+            print(f"  ℹ️  Hour {hour:02d}:xx is not a scheduled shard slot {sorted(SCHED_HOURS_4)}.")
+            print(f"     Running standalone (all {len(items)} destinations). Use --shard 0-3 to target a shard.")
+            return items, 0, 1
+        idx = SCHED_HOURS_4[hour]
     else:
         idx = now_ist().timetuple().tm_yday % n_shards
     return items[idx::n_shards], idx, n_shards

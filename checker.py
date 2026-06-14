@@ -90,9 +90,21 @@ def search_route(origin, dest_code, date, adults, seat) -> Optional[dict]:
         valid = [f for f in result.flights if f.price]
         if not valid:
             return None
-        best = min(valid, key=lambda f: f.price)
+
+        def parse_price(p) -> int:
+            """fast-flights returns price as int or string like '₹8,200' or '8200'."""
+            if isinstance(p, int):
+                return p
+            # strip currency symbols, commas, spaces
+            cleaned = str(p).replace("₹", "").replace(",", "").replace(" ", "").strip()
+            # take only leading digits (e.g. "8200 per person" → "8200")
+            import re
+            m = re.search(r'\d+', cleaned)
+            return int(m.group()) if m else 0
+
+        best = min(valid, key=lambda f: parse_price(f.price))
         return {
-            "price":     best.price,
+            "price":     parse_price(best.price),
             "airline":   best.name,
             "departure": best.departure,
             "arrival":   best.arrival,

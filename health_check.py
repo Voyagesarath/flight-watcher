@@ -25,7 +25,7 @@ def now_ist():
 
 
 def check_health(alert: bool = False) -> bool:
-    """Check if today's 9pm report was sent. Return True if healthy, False if failed."""
+    """Check if today's 6pm report was sent. Return True if healthy, False if failed."""
     today = now_ist().date().isoformat()
 
     if not Path(HEALTH_FILE).exists():
@@ -35,14 +35,16 @@ def check_health(alert: bool = False) -> bool:
     with open(HEALTH_FILE) as f:
         health = json.load(f)
 
-    # Look for "run_completed" or "telegram_sent" after 21:00 IST today
+    # Look for "run_completed" or "telegram_sent" after 18:00 IST today (or any hour for weekends)
     found_success = False
     for timestamp_str, event_data in health.items():
         try:
             ts = datetime.fromisoformat(timestamp_str).astimezone(IST)
             if ts.date().isoformat() != today:
                 continue
-            if ts.hour >= 21:  # 9pm or later
+            # Weekday (Mon-Fri): check after 18:00. Weekend: any time is OK (GitHub Actions).
+            min_hour = 18 if ts.weekday() < 5 else 0
+            if ts.hour >= min_hour:
                 event = event_data.get("event", "")
                 if event in ("run_completed", "telegram_sent"):
                     found_success = True
@@ -52,11 +54,11 @@ def check_health(alert: bool = False) -> bool:
             continue
 
     if found_success:
-        print("✅ Health check passed — 9pm report was sent successfully.")
+        print("✅ Health check passed — 6pm report was sent successfully.")
         return True
 
     # Failure — log details and optionally alert
-    print(f"❌ Health check failed — no 9pm report sent today ({today}).")
+    print(f"❌ Health check failed — no 6pm report sent today ({today}).")
     print(f"   Last events in {HEALTH_FILE}:")
     for timestamp_str, event_data in sorted(health.items())[-5:]:
         ts_short = timestamp_str[-8:-3] if len(timestamp_str) > 8 else timestamp_str
@@ -84,9 +86,9 @@ def send_alert(date_str: str):
         return
 
     msg = f"""⚠️ <b>Flight Watcher Health Alert</b>
-{date_str} 21:15 IST
+{date_str} 18:15 IST
 
-The 9pm flight scan did not send a report today.
+The 6pm flight scan did not send a report today.
 Check /Users/sarathkrishnan/flight-watcher/logs/flight-watcher.log for details.
 
 Possible causes:

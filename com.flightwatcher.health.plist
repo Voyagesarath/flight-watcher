@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  macOS LaunchAgent: runs the health check at 9:15pm IST to verify the
-  9pm flight scan completed and sent the Telegram report. If it failed,
+  macOS LaunchAgent: runs the health check at 6:15pm IST (Mon-Fri) to verify the
+  6pm flight scan completed and sent the Telegram report. If it failed,
   sends an alert Telegram message.
 
   This is the reference copy. The live copy lives at:
@@ -36,10 +36,14 @@
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     </dict>
 
-    <!-- 21:15 IST — verify 9pm report was sent, alert if not -->
+    <!-- 18:15 IST, Mon-Fri — verify 6pm report was sent, alert if not -->
     <key>StartCalendarInterval</key>
     <array>
-        <dict><key>Hour</key><integer>21</integer><key>Minute</key><integer>15</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>15</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>15</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>15</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>15</integer></dict>
+        <dict><key>Weekday</key><integer>6</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>15</integer></dict>
     </array>
 
     <key>StandardOutPath</key>

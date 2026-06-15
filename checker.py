@@ -59,10 +59,10 @@ CACHE_DIR = "cache"
 HEALTH_FILE = "health.json"
 RUN_TIMEOUT_SEC = 600  # 10 minutes — any run taking longer is a hang
 
-# Maps IST hour → shard index for the 4×/day schedule.
-# 9am→0, 1pm→1, 5pm→2, 9pm→3(last). The 9pm run combines all 4 caches and
-# sends the single daily Telegram report.
-SCHED_HOURS_4 = {9: 0, 13: 1, 17: 2, 21: 3}
+# Maps IST hour → shard index for the 8×/day schedule (Mon-Fri, 11am-6pm).
+# 11am→0, 12pm→1, 1pm→2, 2pm→3, 3pm→4, 4pm→5, 5pm→6, 6pm→7(last).
+# The 6pm run combines all 8 caches and sends the daily Telegram report.
+SCHED_HOURS_8 = {11: 0, 12: 1, 13: 2, 14: 3, 15: 4, 16: 5, 17: 6, 18: 7}
 STATE_VERSION = 2
 HISTORY_LIMIT = 60               # observations kept per route+date
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -177,22 +177,28 @@ def watch_day_iso() -> str:
 
 def shard_slice(items: list, n_shards: int, override_idx: int = -1) -> tuple:
     """Return (this_shard_items, shard_idx, n_shards).
-    For n_shards==4: uses IST hour via SCHED_HOURS_4 (true time-based sharding).
+    For n_shards==8: uses IST hour via SCHED_HOURS_8 (Mon-Fri 11am-6pm).
     For other values: falls back to day-of-year modulo.
     """
     if n_shards <= 1:
         return items, 0, 1
     if override_idx >= 0:
         idx = override_idx
-    elif n_shards == 4:
-        hour = now_ist().hour
-        if hour not in SCHED_HOURS_4:
-            # Not at a scheduled slot — bypass sharding so a manual run always
-            # produces a usable report instead of silently writing the wrong cache.
-            print(f"  ℹ️  Hour {hour:02d}:xx is not a scheduled shard slot {sorted(SCHED_HOURS_4)}.")
-            print(f"     Running standalone (all {len(items)} destinations). Use --shard 0-3 to target a shard.")
+    elif n_shards == 8:
+        now = now_ist()
+        hour = now.hour
+        weekday = now.weekday()  # 0=Mon, 6=Sun
+        if weekday >= 5:  # Sat (5) or Sun (6)
+            # Weekends: bypass sharding for GitHub Actions runs at any hour
+            print(f"  ℹ️  Weekend detected ({['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][weekday]}).")
+            print(f"     Running standalone (all {len(items)} destinations) via GitHub Actions.")
             return items, 0, 1
-        idx = SCHED_HOURS_4[hour]
+        if hour not in SCHED_HOURS_8:
+            # Not at a scheduled slot — bypass sharding
+            print(f"  ℹ️  Hour {hour:02d}:xx is not a scheduled shard slot {sorted(SCHED_HOURS_8)}.")
+            print(f"     Running standalone (all {len(items)} destinations). Use --shard 0-7 to target a shard.")
+            return items, 0, 1
+        idx = SCHED_HOURS_8[hour]
     else:
         idx = now_ist().timetuple().tm_yday % n_shards
     return items[idx::n_shards], idx, n_shards

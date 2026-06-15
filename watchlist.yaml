@@ -50,10 +50,10 @@ settings:
   max_stops: null
   fetch_mode: fallback
   retries: 3
-  # Splits the 75-destination list across 4 daily runs (9am/1pm/5pm/9pm IST).
-  # Each run scans ~19 destinations. The 9pm run combines all 4 and sends
-  # the daily Telegram report. Set to 1 to scan everything in one run.
-  shards: 4
+  # Splits the 75-destination list across 8 hourly runs (11am-6pm IST, Mon-Fri).
+  # Each run scans ~9-10 destinations. The 6pm run combines all 8 and sends
+  # the daily Telegram report. Weekends run via GitHub Actions at 2pm IST.
+  shards: 8
   concurrency: 3
   request_delay_sec: 1.0
 

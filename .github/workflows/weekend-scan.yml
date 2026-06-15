@@ -1,0 +1,46 @@
+name: Weekend Flight Scan
+
+# Run Sat/Sun at 2pm IST (8:30am UTC) to collect prices when laptop is off
+on:
+  schedule:
+    - cron: '30 8 * * 6'  # Saturday 8:30am UTC
+    - cron: '30 8 * * 0'  # Sunday 8:30am UTC
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run flight scan (weekends)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 checker.py
+        continue-on-error: true
+
+      - name: Verify scan completed
+        run: |
+          if [ -f health.json ]; then
+            tail -c 500 health.json || echo "health.json exists"
+          else
+            echo "⚠️  health.json not found"
+          fi
+
+      - name: Upload health log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-${{ github.run_id }}
+          path: health.json
+          retention-days: 30

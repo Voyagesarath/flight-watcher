@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS LaunchAgent: runs the health check at 9:15pm IST to verify the
+  9pm flight scan completed and sent the Telegram report. If it failed,
+  sends an alert Telegram message.
+
+  This is the reference copy. The live copy lives at:
+    ~/Library/LaunchAgents/com.flightwatcher.health.plist
+
+  Install / reload:
+    cp com.flightwatcher.health.plist ~/Library/LaunchAgents/
+    launchctl unload ~/Library/LaunchAgents/com.flightwatcher.health.plist 2>/dev/null
+    launchctl load -w ~/Library/LaunchAgents/com.flightwatcher.health.plist
+
+  Run once now to test:
+    launchctl start com.flightwatcher.health
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.flightwatcher.health</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/sarathkrishnan/flight-watcher/health_check.py</string>
+        <string>--alert</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/sarathkrishnan/flight-watcher</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- 21:15 IST — verify 9pm report was sent, alert if not -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Hour</key><integer>21</integer><key>Minute</key><integer>15</integer></dict>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>/Users/sarathkrishnan/flight-watcher/logs/health-check.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/sarathkrishnan/flight-watcher/logs/health-check.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

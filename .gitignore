@@ -6,3 +6,4 @@ state.json.tmp
 logs/*
 !logs/.gitkeep
 cache/
+health.json

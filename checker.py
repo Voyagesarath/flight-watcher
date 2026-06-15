@@ -29,6 +29,7 @@ import json
 import os
 import random
 import re
+import signal
 import socket
 import statistics
 import sys
@@ -55,6 +56,8 @@ from fast_flights.filter import TFSData
 CONFIG_FILE = "watchlist.yaml"
 STATE_FILE = "state.json"
 CACHE_DIR = "cache"
+HEALTH_FILE = "health.json"
+RUN_TIMEOUT_SEC = 600  # 10 minutes — any run taking longer is a hang
 
 # Maps IST hour → shard index for the 4×/day schedule.
 # 9am→0, 1pm→1, 5pm→2, 9pm→3(last). The 9pm run combines all 4 caches and
@@ -90,6 +93,31 @@ def today_iso() -> str:
 def active_origin(all_origins: list) -> str:
     """Alternate origin by day-of-year: index 0 on odd days, 1 on even, etc."""
     return all_origins[now_ist().timetuple().tm_yday % len(all_origins)]
+
+
+def record_health(event: str, details: str = ""):
+    """Log health/status event for monitoring (timestamp, shard, success/fail)."""
+    try:
+        data = {}
+        if os.path.exists(HEALTH_FILE):
+            with open(HEALTH_FILE) as f:
+                data = json.load(f)
+        data[now_ist().isoformat()] = {"event": event, "details": details}
+        with open(HEALTH_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"⚠️  Health logging failed: {e}")
+
+
+def timeout_handler(signum, frame):
+    """Raise TimeoutError when RUN_TIMEOUT_SEC is exceeded."""
+    raise TimeoutError(f"Run exceeded {RUN_TIMEOUT_SEC}s timeout — likely a hang. Killing process.")
+
+
+def set_run_timeout():
+    """Set OS-level timeout for the entire process."""
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(RUN_TIMEOUT_SEC)
 
 
 # ── Shard cache (accumulate results across the 4 daily runs) ─────────────────
@@ -649,7 +677,8 @@ def chunk_lines(lines: list[str], limit: int = 3800) -> list[str]:
     return chunks
 
 
-def send_telegram(bot_token: str, chat_id: str, message: str):
+def send_telegram(bot_token: str, chat_id: str, message: str) -> str:
+    """Send Telegram message. Returns message_id on success, raises on failure."""
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = json.dumps({
         "chat_id": chat_id,
@@ -663,8 +692,15 @@ def send_telegram(bot_token: str, chat_id: str, message: str):
             result = json.loads(resp.read())
             if not result.get("ok"):
                 raise RuntimeError(f"Telegram error: {result}")
+            msg_id = result.get("result", {}).get("message_id", "?")
+            record_health("telegram_sent", f"msg_id={msg_id}")
+            return str(msg_id)
     except urllib.error.HTTPError as e:
+        record_health("telegram_failed", f"HTTP {e.code}")
         raise RuntimeError(f"Telegram HTTP {e.code}: {e.read().decode()[:300]}")
+    except Exception as e:
+        record_health("telegram_error", str(e)[:100])
+        raise
 
 
 def deliver(lines: list[str], bot_token: Optional[str], chat_id: Optional[str], local: bool):
@@ -672,12 +708,17 @@ def deliver(lines: list[str], bot_token: Optional[str], chat_id: Optional[str], 
     if local or not (bot_token and chat_id):
         if not local:
             print("⚠️  TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID not set — printing instead.\n")
+            record_health("no_credentials", "token/chat_id missing")
         # Strip simple HTML tags for console readability.
         plain = re.sub(r"</?(b|i)>", "", text)
         print(plain)
         return
-    for part in chunk_lines(lines):
-        send_telegram(bot_token, chat_id, part)
+    try:
+        for part in chunk_lines(lines):
+            send_telegram(bot_token, chat_id, part)
+    except Exception as e:
+        record_health("delivery_failed", str(e)[:100])
+        raise
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
@@ -855,4 +896,15 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        set_run_timeout()
+        main()
+        record_health("run_completed", "success")
+    except TimeoutError as e:
+        print(f"❌ {e}")
+        record_health("run_timeout", f"exceeded {RUN_TIMEOUT_SEC}s")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Run failed: {e}")
+        record_health("run_failed", str(e)[:100])
+        sys.exit(1)

@@ -57,7 +57,7 @@ CONFIG_FILE = "watchlist.yaml"
 STATE_FILE = "state.json"
 CACHE_DIR = "cache"
 HEALTH_FILE = "health.json"
-RUN_TIMEOUT_SEC = 600  # 10 minutes — any run taking longer is a hang
+RUN_TIMEOUT_SEC = 900  # 15 minutes — reduced concurrency means slower but reliable scans
 
 # Maps IST hour → shard index for the 8×/day schedule (Mon-Fri, 11am-6pm).
 # 11am→0, 12pm→1, 1pm→2, 2pm→3, 3pm→4, 4pm→5, 5pm→6, 6pm→7(last).

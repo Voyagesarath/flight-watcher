@@ -54,8 +54,8 @@ settings:
   # Each run scans ~9-10 destinations. The 6pm run combines all 8 and sends
   # the daily Telegram report. Weekends run via GitHub Actions at 2pm IST.
   shards: 8
-  concurrency: 3
-  request_delay_sec: 1.0
+  concurrency: 1
+  request_delay_sec: 0.5
 
 # ── Excluded countries ───────────────────────────────────────────────────────
 excluded_countries:
